@@ -1,6 +1,6 @@
 # Async REST Server
 
-A simple example of how to implement an asynchronous RESTful API to do NLP tasks with [Hugging Face Transformers](https://github.com/huggingface/transformers), [`aiohttp`](https://docs.aiohttp.org/en/stable/), and [`asyncio`](https://docs.python.org/3/library/asyncio.html).
+A simple example of how to implement an asynchronous RESTful API to do NLP tasks with [`transformer`](https://github.com/huggingface/transformers), [`aiohttp`](https://docs.aiohttp.org/en/stable/), and [`asyncio`](https://docs.python.org/3/library/asyncio.html).
 
 ### Install Prereqs
 ```bash
