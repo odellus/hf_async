@@ -5,7 +5,7 @@ import time
 import torch
 import argparse
 
-from typing import Tuple
+from typing import Tuple, List
 from transformers import (
     T5TokenizerFast, 
     T5ForConditionalGeneration,
@@ -44,6 +44,51 @@ if args.qa:
 else:
     tokenizer, model = load_led()
 
+
+def load_book():
+    fname = './tale2cities.json'
+    with open(fname, 'r') as f:
+        return json.load(f)
+
+def save_book(book):
+    fname = './tale2cities_cliffnotes.json'
+    with open(fname, 'w') as f:
+        json.dump(book, f)
+
+async def summarize_texts(
+    input_strs: List[str],
+    tokenizer: LEDTokenizerFast, 
+    model: LEDForConditionalGeneration,
+    ) -> List[str]:
+    t = time.time()
+    outputs = []
+    for input_str in input_strs:
+        output = await summarize_text(input_str, tokenizer, model)
+        outputs.append(output)
+    output_book = [{'summary': x} for x in outputs]
+    save_book(output_book)
+    print(f'Took {time.time()-t} seconds to summarize Tale of Two Cities.')
+    return outputs
+
+async def summarize_batch_request(request):
+    try:
+        inputs = await request.json()
+        print(json.dumps(inputs))
+        context = inputs.get('context')
+        book = load_book()
+        input_strs = [x['text'] for x in book]
+        print(len(input_strs))
+        loop = asyncio.get_event_loop()
+        loop.create_task(
+            summarize_texts(input_strs, tokenizer, model)
+        )
+        resp_obj = {'status': 'success', 'inputs': inputs}
+        return web.Response(text=json.dumps(resp_obj), status=200)
+    except Exception as e:
+        resp_obj = {'status': 'failed', 'reason': str(e)}
+        return web.Response(text=json.dumps(resp_obj), status=500)
+
+
 async def summarize_text(
     input_str: str, 
     tokenizer: LEDTokenizerFast, 
@@ -54,6 +99,7 @@ async def summarize_text(
     global_attention_mask[:,0] = 1
     output = model.generate(input_ids, global_attention_mask=global_attention_mask)
     output_str = tokenizer.decode(output[0], skip_special_tokens=True)
+    print(input_str)
     print(output_str)
     return output_str
 
@@ -64,7 +110,7 @@ async def summarize_request(request):
         context = inputs.get('context')
         loop = asyncio.get_event_loop()
         loop.create_task(
-            answer_question(context, tokenizer, model)
+            summarize_text(context, tokenizer, model)
         )
         resp_obj = {'status': 'success', 'inputs': inputs}
         return web.Response(text=json.dumps(resp_obj), status=200)
@@ -143,4 +189,6 @@ if __name__ == '__main__':
     app = web.Application()
     app.router.add_post('/ask_question', ask_question)
     app.router.add_post('/summarize_text', summarize_request)
+    app.router.add_post('/summarize_batch', summarize_batch_request)
+
     web.run_app(app)
