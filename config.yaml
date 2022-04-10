@@ -1,3 +1,6 @@
 hf_model_dir: "${HOME}/src/hf_models"
+macaw_model_name: "macaw-large"
+led_model_name: "led-large-16384-arxiv"
 book_text_filename: "tale_of_two_cities.txt"
 book_json_filename: "tale2cities.json"
+cliffnotes_json_filename: "tale2cities_cliffnotes.json"

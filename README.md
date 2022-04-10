@@ -49,7 +49,10 @@ def test_summarize_batch():
     about 260 seconds.
     '''
     url = 'http://0.0.0.0:8080/summarize_batch'
-    d = {'context': ''} # Doesn't matter. It's not listening.
+    d = {
+        'input_filename': 'tale2cities.json',
+        'output_filename': 'tale2cities_chapter_summaries.json'
+    }
     res = requests.post(url, json=d)
     print(res.json())
 ```

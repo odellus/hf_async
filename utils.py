@@ -1,6 +1,35 @@
 import yaml
 import os
 import re
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+def authenticate() -> GoogleAuth:
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()
+    return gauth
+
+def get_drive() -> GoogleDrive:
+    gauth = authenticate()
+    return GoogleDrive(gauth)
+
+def get_file(filename: str, drive: GoogleDrive) -> bool:
+    file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+    _id = None
+    for file_dst in file_list:
+        if file_dst['title'] == filename:
+            _id = file_dst['id']
+    if _id is None:
+        print('File not found!')
+        return False
+    file_src = drive.CreateFile({'id': _id})
+    file_src.GetContentFile(filename)
+    return True
+
+def put_file(filename: str, drive: GoogleDrive) -> None:
+    file_dst = drive.CreateFile({'title': filename})
+    file_dst.SetContentFile(filename)
+    file_dst.Upload()
 
 def is_even(k: int) -> bool:
     '''Is the input integer even?
