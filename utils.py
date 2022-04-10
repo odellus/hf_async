@@ -19,6 +19,7 @@ def get_file(filename: str, drive: GoogleDrive) -> bool:
     for file_dst in file_list:
         if file_dst['title'] == filename:
             _id = file_dst['id']
+            break
     if _id is None:
         print('File not found!')
         return False
