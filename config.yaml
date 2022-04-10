@@ -1,1 +1,3 @@
-hf_model_dir: ${HOME}/src/hf_models
+hf_model_dir: "${HOME}/src/hf_models"
+book_text_filename: "tale_of_two_cities.txt"
+book_json_filename: "tale2cities.json"
