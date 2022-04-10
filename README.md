@@ -51,5 +51,5 @@ def test_summarize_batch():
     url = 'http://0.0.0.0:8080/summarize_batch'
     d = {'context': ''} # Doesn't matter. It's not listening.
     res = requests.post(url, json=d)
-    print(res.json)
+    print(res.json())
 ```

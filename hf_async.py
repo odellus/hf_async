@@ -13,7 +13,9 @@ from transformers import (
     LEDForConditionalGeneration,
 )
 
-def parse_args():
+from util import get_cfg
+
+def parse_args() -> argparse.Namespace:
     '''LED is a better example for async because processing long documents
     is compute intensive.
     '''
@@ -22,35 +24,38 @@ def parse_args():
     return parser.parse_args()
 
 args = parse_args()
+cfg = get_cfg()
 
-def load_macaw() -> Tuple[T5TokenizerFast, T5ForConditionalGeneration]:
+def load_macaw(cfg: dict) -> Tuple[T5TokenizerFast, T5ForConditionalGeneration]:
     print('Loading MACAW tokenizer and model...')
-    fpath = '/home/thomas/src/hf_models/macaw-large'
+    hf_model_dir = cfg['hf_model_dir']
+    fpath = f'{hf_model_dir}/macaw-large'
     tokenizer = T5TokenizerFast.from_pretrained(fpath)
     model = T5ForConditionalGeneration.from_pretrained(fpath)
     model = model.to('cuda')
     return tokenizer, model
 
-def load_led() -> Tuple[LEDTokenizerFast, LEDForConditionalGeneration]:
+def load_led(cfg: dict) -> Tuple[LEDTokenizerFast, LEDForConditionalGeneration]:
     print('Loading LED tokenizer and model...')
-    fpath = '/home/thomas/src/hf_models/led-large-16384-arxiv'
+    hf_model_dir = cfg['hf_model_dir']
+    fpath = f'{hf_model_dir}/led-large-16384-arxiv'
     tokenizer = LEDTokenizerFast.from_pretrained(fpath)
     model = LEDForConditionalGeneration.from_pretrained(fpath)
     model = model.to('cuda')
     return tokenizer, model
 
 if args.qa:
-    tokenizer, model = load_macaw()
+    tokenizer, model = load_macaw(cfg)
 else:
-    tokenizer, model = load_led()
+    tokenizer, model = load_led(cfg)
 
 
-def load_book():
+def load_book() -> dict:
     fname = './tale2cities.json'
     with open(fname, 'r') as f:
         return json.load(f)
 
-def save_book(book):
+def save_book(book: dict) -> None:
     fname = './tale2cities_cliffnotes.json'
     with open(fname, 'w') as f:
         json.dump(book, f)
@@ -70,7 +75,7 @@ async def summarize_texts(
     print(f'Took {time.time()-t} seconds to summarize Tale of Two Cities.')
     return outputs
 
-async def summarize_batch_request(request):
+async def summarize_batch_request(request: web.Request) -> web.Response:
     try:
         inputs = await request.json()
         print(json.dumps(inputs))
@@ -103,7 +108,7 @@ async def summarize_text(
     print(output_str)
     return output_str
 
-async def summarize_request(request):
+async def summarize_request(request: web.Request) -> web.Response:
     try:
         inputs = await request.json()
         print(json.dumps(inputs))
@@ -129,7 +134,7 @@ async def answer_question(
     print(output_str)
     return output_str
 
-async def ask_question(request) -> web.Response:
+async def ask_question(request: web.Request) -> web.Response:
     '''
     Another asynchronous function that handles requests, taking the
     nap_length parameter as input from the body of a post request
@@ -164,7 +169,7 @@ async def waiter(t: int) -> None:
     time.sleep(t)
     print('That was a refreshing nap')
 
-async def take_nap(request) -> web.Response:
+async def take_nap(request: web.Request) -> web.Response:
     '''
     Another asynchronous function that handles requests, taking the
     nap_length parameter as input from the body of a post request
